@@ -5,9 +5,7 @@ import os, sys, time, re
 pid = os.getpid()
 
 os.write(1, ("About to fork (pid:%d)\n" % pid).encode())
-
 rc = os.fork()
-
 if rc < 0:
     os.write(2, ("fork failed, returning %d\n" % rc).encode())
     sys.exit(1)
@@ -17,7 +15,7 @@ elif rc == 0:                   # child
                  (os.getpid(), pid)).encode())
     args = ["wc", "p3-exec.py"]
     for dir in re.split(":", os.environ['PATH']): # try each directory in the path
-        program = "%s/%s" % (dir, args[0])
+        program = "%s/%s" % (dir, args[0]) #concats the directory with the command wc
         os.write(1, ("Child:  ...trying to exec %s\n" % program).encode())
         try:
             os.execve(program, args, os.environ) # try to exec program
