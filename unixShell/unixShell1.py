@@ -4,35 +4,56 @@
 
 import os,sys,re
 from myReadLine import myReadLine
-
+from redirect import *
 while (1):
-    if 'PS1' in os.environ:                           #checks if there is a prompt    
+    if 'PS1' in os.environ:                           #checks if there is a pre-defined prompt str   
         os.write(1,(os.environ['PS1']).encode())
-    else:                                             #if not print $ as prompt variable
+    else:                                             #if not print $ as prompt string
         os.write(1 , "$ ".encode())
         
     userInput = myReadLine()                          #waits for input
     args = userInput.split()                          #splits to know arguments with parameters
     
-    if userInput == "exit":                           #exits shell
+    if userInput == "":
+        os.write(2,"No input introduced\n".encode())
+
+    elif userInput == "exit":                           #exits shell
         sys.exit(1)
-    rc = os.fork()
-    if rc < 0:                                        #fails to make the fork call
-        os.write(2, ("fork failed, returning %d\n" %rc).encode())
-        sys.exit(1)
-    elif rc == 0:                                     #child
-        for dir in re.split(":", os.environ['PATH']): # try each directory in the path
-            program = "%s/%s" % (dir, args[0])        #concats the directory with the command intro                                                       duced by the user
+
+    elif args[0] == "cd":                             #if input begins with cd
+        if len(args) == 2:                            
             try:
-                os.execve(program, args, os.environ)  #Tries to execute command
+                os.chdir(args[1])                     #change dir to second arg
+            except:
+                os.write(2,"Invalid commmand\n".encode()) #if dir is not valid
+        elif len(args) == 1:
+            os.chdir(os.environ['HOME'])              #if input is just cd
+        else:
+            os.write(2,"Invalid command".encode())    #if begins with cd and it has more than 3args
+
+    else:            
+        rc = os.fork()
+        if rc < 0:                                        #fails to make the fork call
+            os.write(2, ("fork failed, returning %d\n" %rc).encode())
+            sys.exit(1)
+        elif rc == 0:                                     #child
+            if '>' in args:
+                redirectOutput(args)
+            elif '<' in args:
+                redirectInput(args)
+            #else:
+            for dir in re.split(":", os.environ['PATH']): # try each directory in the path
+                program = "%s/%s" % (dir, args[0])        #concats the directory with the command introduced by the user
+                try:
+                    os.execve(program, args, os.environ)  #Try to execute command
                                                       #program = dir + command
                                                       #args = user input
                                                       #os.environ = child inherance os.environ
-            except FileNotFoundError:
-                pass
+                except FileNotFoundError:
+                    pass
 
-        os.write(2, ("Child:    Could not exec %s\n" % args[0]).encode())
-        sys.exit(1)                                    # terminate with error
-    else:
-        childPidCode = os.wait()
+            os.write(2, ("Child:    Could not exec %s\n" % args[0]).encode())
+            sys.exit(1)                                    # terminate with error
+        else:
+            os.wait()
         

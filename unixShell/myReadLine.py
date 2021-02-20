@@ -3,33 +3,33 @@
 
 from os import read
 limit = 0
-next = 0
+index = 0
 
 def myGetChar():                          #reads input char by char
     global limit
-    global next
-    if next == limit:
-        next = 0
-        limit = read(0,1000)              #fills buffer
+    global index
+    if index == limit:
+        index = 0
+        limit = read(0,1000)              #fills array from input
 
         if limit == 0:                    #if there is nothing in input then EOF
             return "EOF"
 
-    if next < len(limit) - 1:             #Avoids out of bounds
-        character = chr(limit[next])
-        next +=1
+    if index < len(limit) - 1:             #Avoids out of bounds
+        character = chr(limit[index])
+        index +=1
         return character       
-    else:
+    else:                                   #if index is greater than len(limit)
         return "EOF"
        
 def myReadLine():
     global limit
-    global next
+    global index
     line = ""
-    c = myGetChar()                       #c takes each character from input
-    while c!='' and c!= "EOF":
-        line += c                          #adds char by char to the line
-        c = myGetChar()
-    next = 0
+    character = myGetChar()                        #c takes each character from input
+    while character!='' and character!= "EOF":
+        line += character                          #adds char by char to the line
+        character = myGetChar()                    
+    index = 0
     limit = 0
     return line
